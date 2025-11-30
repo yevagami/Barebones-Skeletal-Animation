@@ -18,7 +18,6 @@
 #include <imgui_impl_sdl2.h>
 #include <SDL_events.h>
 
-#include "timer.h"
 
 /// This is all in 1 file so you don't have to hunt through different files
 /// It is tempting to do that, but by leaving it out in the open you can get the big picture 
@@ -624,7 +623,91 @@ void getPose(Animation& animation, Bone& skeleton, float dt, std::vector<glm::ma
 		getPose(animation, child, dt, output, globalTransform, globalInverseTransform);
 	}
 }
+//Does the samething but through a stack for easier debugging
+void getPoseViaStack(Animation& animation, Bone& root, float dt, std::vector<glm::mat4>& output, glm::mat4& parentTransform,glm::mat4& globalInverseTransform) {
+	CSV_IO::Start("./output/bones.csv");
+	CSV_IO::SetHeader("BoneName,ref_pos,ref_rot,ref_scale,ref_transform,anim_pos,anim_rot,anim_scale,anim_transform,parent_pos,parent_rot,parent_scale,parent_transform,output_pos,output_rot,output_scale,output_transform");
 
+
+	//I have free will, you cannot stop me
+	struct StackItem {
+		Bone* bone;
+		glm::mat4 parentMatrix;
+	};
+
+	std::stack<StackItem> stack;
+	stack.push({ &root, parentTransform });
+
+	dt = fmod(dt, animation.duration);
+
+	while (!stack.empty()) {
+		StackItem item = stack.top();
+		stack.pop();
+		Bone* bone = item.bone;
+		glm::mat4 parentMat = item.parentMatrix;
+		BoneTransformTrack& btt = animation.boneTransforms[bone->name];
+
+		glm::vec3 position;
+		if (btt.positions.size() > 0) {
+			auto fp = getTimeFraction(btt.positionTimestamps, dt);
+
+			if (fp.first - 1 >= 0) {
+				glm::vec3 p1 = btt.positions[fp.first - 1];
+				glm::vec3 p2 = btt.positions[fp.first];
+				position = glm::mix(p1, p2, fp.second);
+			}
+			else {
+				position = btt.positions[0];
+			}
+		}
+
+		glm::quat rotation = glm::quat(1,0,0,0);
+		if (btt.rotations.size() > 0) {
+			auto fp = getTimeFraction(btt.rotationTimestamps, dt);
+
+			if (fp.first - 1 >= 0) {
+				glm::quat r1 = btt.rotations[fp.first - 1];
+				glm::quat r2 = btt.rotations[fp.first];
+				rotation = glm::slerp(r1, r2, fp.second);
+			}
+			else {
+				rotation = btt.rotations[0];
+			}
+		}
+
+		glm::vec3 scale(1,1,1);
+		if (btt.scales.size() > 0) {
+			auto fp = getTimeFraction(btt.scaleTimestamps, dt);
+
+			if (fp.first - 1 >= 0) {
+				glm::vec3 s1 = btt.scales[fp.first - 1];
+				glm::vec3 s2 = btt.scales[fp.first];
+				scale = glm::mix(s1, s2, fp.second);
+			}
+			else {
+				scale = btt.scales[0];
+			}
+		}
+
+		glm::mat4 positionMat = glm::translate(glm::mat4(1.0f), position);
+		glm::mat4 rotationMat = glm::toMat4(rotation);
+		glm::mat4 scaleMat = glm::scale(glm::mat4(1.0f), scale);
+
+		glm::mat4 localTransform = positionMat * rotationMat * scaleMat;
+		glm::mat4 globalTransform = parentMat * localTransform;
+
+		// Ignore unnamed phantom bones
+		if (!bone->name.empty()) {
+			output[bone->id] = globalInverseTransform * globalTransform * bone->offset;
+		}
+
+		for (Bone& child : bone->children) {
+			stack.push({ &child, globalTransform });
+		}
+	}
+
+	CSV_IO::Stop();
+}
 #pragma endregion
 
 
@@ -756,7 +839,7 @@ int main(int argc, char *argv[]) {
 			currentPose.resize(currentAnim.boneCount, glm::mat4(1.0f));
 
 			glm::mat4 identity = glm::mat4(1.0f);
-			getPose(
+			getPoseViaStack(
 				currentAnim,
 				dancingRobot.meshes[i].skeleton, 
 				currentAnim.animationTime, //Which time to sample

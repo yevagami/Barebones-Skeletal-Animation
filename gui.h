@@ -5,6 +5,7 @@
 #include <SDL_events.h>
 #include "MemoryMap.h"
 #include "timer.h"
+#include "fileIO.h"
 
 class GUI {
 public:
