@@ -11,6 +11,12 @@
 #include <stack>
 #include <glm/gtx/quaternion.hpp>
 #include <glm/gtc/type_ptr.hpp>
+#include "gui.h"
+
+#include <imgui.h>
+#include <imgui_impl_opengl3.h>
+#include <imgui_impl_sdl2.h>
+#include <SDL_events.h>
 
 /// This is all in 1 file so you don't have to hunt through different files
 /// It is tempting to do that, but by leaving it out in the open you can get the big picture 
@@ -136,6 +142,7 @@ inline SDL_Window* initWindow(int& windowWidth, int& windowHeight) {
 	glEnable(GL_DEPTH_TEST);
 	SDL_ShowWindow(window);
 	SDL_GL_SetSwapInterval(1);
+
 	return window;
 }
 
@@ -619,12 +626,28 @@ void getPose(Animation& animation, Bone& skeleton, float dt, std::vector<glm::ma
 #pragma endregion
 
 
-int main(int argc, char *argv[ ]) {
+int main(int argc, char *argv[]) {
 
 	//Creating the window
 	int windowWidth, windowHeight;
 	SDL_Window* window = initWindow(windowWidth, windowHeight);
 	bool isRunning = true;
+
+
+	//Creating imgui
+	// Setup Dear ImGui context
+	IMGUI_CHECKVERSION();
+	ImGui::CreateContext();
+	ImGuiIO& io = ImGui::GetIO();
+	io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
+	io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
+	//io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;         // IF using Docking Branch
+
+
+	// Setup Platform/Renderer backends
+	ImGui_ImplSDL2_InitForOpenGL(window, SDL_GL_GetCurrentContext());
+	ImGui_ImplOpenGL3_Init();
+
 
 	//Loading the file
 	//Note: the flags are a bit much I know but these are the ones that work for me
@@ -695,6 +718,9 @@ int main(int argc, char *argv[ ]) {
 		while (SDL_PollEvent(&ev)) {
 			if (ev.type == SDL_QUIT)
 				isRunning = false;
+			// (Where your code calls SDL_PollEvent())
+			ImGui_ImplSDL2_ProcessEvent(&ev); // Forward your event to backend
+			// (You should discard mouse/keyboard messages in your game/engine when io.WantCaptureMouse/io.WantCaptureKeyboard are set.)
 		}
 
 		/// Update
@@ -716,12 +742,17 @@ int main(int argc, char *argv[ ]) {
 			}
 		}
 
+		// (After event loop)
+		// Start the Dear ImGui frame
+		ImGui_ImplOpenGL3_NewFrame();
+		ImGui_ImplSDL2_NewFrame();
+		ImGui::NewFrame();
+		ImGui::ShowDemoWindow(); // Show demo window! :)
+
 		/// Rendering
 		//Clearing the screen
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		glUseProgram(shader);
-		//Setting the view and projection matrix
-		
 
 		//For this demo there is only 1 animation for this mode
 		Animation& currentAnim = dancingRobot.animations[0];
@@ -754,10 +785,21 @@ int main(int argc, char *argv[ ]) {
 			glDrawElements(GL_TRIANGLES, dancingRobot.meshes[i].indices.size(), GL_UNSIGNED_INT, 0);
 		}
 
+
+		// (Your code clears your framebuffer, renders your other stuff etc.)
+		ImGui::Render();
+		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+		// (Your code calls SDL_GL_SwapWindow() etc.)
+
+
 		SDL_GL_SwapWindow(window);
 	}
 
 	//cleanup
+	ImGui_ImplOpenGL3_Shutdown();
+	ImGui_ImplSDL2_Shutdown();
+	ImGui::DestroyContext();
+
 	SDL_GLContext context =  SDL_GL_GetCurrentContext();
 	SDL_GL_DeleteContext(context);
 	SDL_DestroyWindow(window);
