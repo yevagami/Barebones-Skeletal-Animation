@@ -59,6 +59,7 @@ public:
         //Searching through all the entries
         std::uintptr_t entryIndex = HashPtr(ptr);
         if (entries[entryIndex].ptr == ptr) {
+            
             entries[entryIndex].ptr = nullptr;
             totalEntries--;
         }
@@ -75,6 +76,7 @@ public:
                 }
             }
         }
+
     }
 
     std::uintptr_t HashPtr(void* ptr) {

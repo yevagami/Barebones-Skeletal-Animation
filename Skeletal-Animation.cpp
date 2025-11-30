@@ -285,8 +285,6 @@ void loadMesh(const aiScene* scene, std::vector<Mesh>& outputMesh) {
 		//The struct that we are pushing into the vector
 		Mesh newMesh = {}; 
 
-		MEMORY_CHUNKS::Print();
-
 		//load position, normal, uv
 		for (unsigned int i = 0; i < mesh->mNumVertices; i++) {
 			//process position 

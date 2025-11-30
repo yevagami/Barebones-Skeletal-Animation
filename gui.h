@@ -60,16 +60,16 @@ public:
 			| ImGuiWindowFlags_NoResize
 			| ImGuiWindowFlags_NoCollapse
 			| ImGuiWindowFlags_NoNav
-			| ImGuiWindowFlags_NoBringToFrontOnFocus
-			| ImGuiWindowFlags_UnsavedDocument;
+			| ImGuiWindowFlags_NoBringToFrontOnFocus;
 
 		ImGui::Begin("Info Window", NULL, window_flags);
 		ImGui::SetWindowPos(ImVec2(0.0f, 0.0f));
-		ImGui::SetWindowSize(ImVec2(200, 100));
+		ImGui::SetWindowSize(ImVec2(300, 300));
+		ImGui::SeparatorText("Memory Monitor");
 		for (int i = 0; i < MEMORY_CHUNKS::CHUNKS; i++) {
 			float percent = (float)MEMORY_CHUNKS::USED[i] / (float)MEMORY_CHUNKS::BYTES_PER_CHUNK;
 			percent *= 100.0f;
-			ImGui::Text("Memory Chunk %d (%d/%d) %.3f", i, MEMORY_CHUNKS::USED[i], MEMORY_CHUNKS::BYTES_PER_CHUNK, percent);
+			ImGui::Text("Memory Chunk %d %.2f%% (%.2f/%.2f) MB", i, percent, ((float)MEMORY_CHUNKS::USED[i]) / 1000000, ((float)MEMORY_CHUNKS::BYTES_PER_CHUNK)/1000000);
 		}
 		//ImGui::Text("TESTING STUFF");
 		ImGui::End();
