@@ -4,6 +4,7 @@
 #include <imgui_impl_sdl2.h>
 #include <SDL_events.h>
 #include "MemoryMap.h"
+#include "timer.h"
 
 class GUI {
 public:
@@ -70,6 +71,16 @@ public:
 			float percent = (float)MEMORY_CHUNKS::USED[i] / (float)MEMORY_CHUNKS::BYTES_PER_CHUNK;
 			percent *= 100.0f;
 			ImGui::Text("Memory Chunk %d %.2f%% (%.2f/%.2f) MB", i, percent, ((float)MEMORY_CHUNKS::USED[i]) / 1000000, ((float)MEMORY_CHUNKS::BYTES_PER_CHUNK)/1000000);
+		}
+
+		ImGui::SeparatorText("Timer Logs");
+		for (int i = 0; i < TIMER::MAX_ENTRIES; i++) {
+			TimerLogEntry entry = TIMER::logs[i];
+			if(entry.prefix == nullptr){
+				ImGui::Text("");
+				continue;
+			}
+			ImGui::Text("%s%.2f ms", entry.prefix, entry.result);
 		}
 		//ImGui::Text("TESTING STUFF");
 		ImGui::End();

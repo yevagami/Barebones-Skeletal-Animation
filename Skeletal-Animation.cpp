@@ -18,7 +18,7 @@
 #include <imgui_impl_sdl2.h>
 #include <SDL_events.h>
 
-//#include "MemoryMap.h"
+#include "timer.h"
 
 /// This is all in 1 file so you don't have to hunt through different files
 /// It is tempting to do that, but by leaving it out in the open you can get the big picture 
@@ -664,8 +664,13 @@ int main(int argc, char *argv[]) {
 
 	//Creating the model and loading in the meshes & animations
 	Model dancingRobot = {};
+	TIMER::StartTiming("Loading Mesh: ");
 	loadMesh(scene, dancingRobot.meshes);
+	TIMER::StopTiming();
+
+	TIMER::StartTiming("Loading Animation: ");
 	loadAnimation(scene, dancingRobot.animations);
+	TIMER::StopTiming();
 
 	//We inverse the root node transformation for the outputPose calculation
 	//I don't recommend you change this unless you know what you are doing
@@ -777,7 +782,8 @@ int main(int argc, char *argv[]) {
 		SDL_GL_SwapWindow(window);
 	}
 
-	//cleanup
+	
+	///Cleanup
 	GUI::Shutdown();
 
 	SDL_GLContext context =  SDL_GL_GetCurrentContext();

@@ -148,6 +148,7 @@
     <ClInclude Include="gui.h" />
     <ClInclude Include="MemoryMap.h" />
     <ClInclude Include="stb_image.h" />
+    <ClInclude Include="timer.h" />
     <ClInclude Include="utils.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
