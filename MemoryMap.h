@@ -136,12 +136,10 @@ private:
 
 ///
 class MEMORY_CHUNKS{
-private:
-    static const unsigned int CHUNKS = 4;
-    static const unsigned int BYTES_PER_CHUNK = 100000000; //100 mil bytes 100 megabyte
-    static MEMORY_MAP MAPS[CHUNKS];
 
 public:
+    static const unsigned int BYTES_PER_CHUNK = 100000000; //100 mil bytes 100 megabyte
+    static const unsigned int CHUNKS = 4;
     static unsigned int USED[CHUNKS];
 
     //Add an entry to the memory chunks
@@ -183,6 +181,10 @@ public:
             printf("\n");
         }
     }
+
+
+private:
+    static MEMORY_MAP MAPS[CHUNKS];
 };
 
 void* operator new(std::size_t numBytes) {

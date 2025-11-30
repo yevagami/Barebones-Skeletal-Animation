@@ -66,7 +66,12 @@ public:
 		ImGui::Begin("Info Window", NULL, window_flags);
 		ImGui::SetWindowPos(ImVec2(0.0f, 0.0f));
 		ImGui::SetWindowSize(ImVec2(200, 100));
-		ImGui::Text("TESTING STUFF");
+		for (int i = 0; i < MEMORY_CHUNKS::CHUNKS; i++) {
+			float percent = (float)MEMORY_CHUNKS::USED[i] / (float)MEMORY_CHUNKS::BYTES_PER_CHUNK;
+			percent *= 100.0f;
+			ImGui::Text("Memory Chunk %d (%d/%d) %.3f", i, MEMORY_CHUNKS::USED[i], MEMORY_CHUNKS::BYTES_PER_CHUNK, percent);
+		}
+		//ImGui::Text("TESTING STUFF");
 		ImGui::End();
 	}
 };
