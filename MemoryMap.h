@@ -44,12 +44,12 @@ public:
         }
         //If not we traverse through and append it to the end
         else {
-            MemoryMapEntry* entryPivot = &entries[entryIndex];
-            while (entryPivot->childNode != nullptr) {
-                entryPivot = entryPivot->childNode;
+            MemoryMapEntry entryPivot = entries[entryIndex];
+            while (entryPivot.childNode != nullptr) {
+                entryPivot = *entryPivot.childNode;
             }
 
-            entryPivot->childNode = &newEntry;
+            entryPivot.childNode = &newEntry;
         }
     }
 
@@ -134,11 +134,11 @@ private:
     MemoryMapEntry entries[MAX_ENTRIES];
 };
 
-
+///
 class MEMORY_CHUNKS{
 private:
     static const unsigned int CHUNKS = 4;
-    static const unsigned int BYTES_PER_CHUNK = 1000000; //1 mil bytes 1 megabyte
+    static const unsigned int BYTES_PER_CHUNK = 100000000; //100 mil bytes 100 megabyte
     static MEMORY_MAP MAPS[CHUNKS];
 
 public:
@@ -151,7 +151,7 @@ public:
 
         //If the amount of bytes you want to add doesn't fit, then it doesn't give you an address
         if (BYTES_PER_CHUNK - USED[chunk] < numBytes) {
-            return nullptr;
+             return nullptr;
         }
         void* ptr = std::malloc(numBytes);
         USED[chunk] += numBytes;
