@@ -17,6 +17,7 @@
 #include <imgui_impl_opengl3.h>
 #include <imgui_impl_sdl2.h>
 #include <SDL_events.h>
+#include <SDL_mixer.h>
 
 
 /// This is all in 1 file so you don't have to hunt through different files
@@ -111,7 +112,7 @@ inline unsigned int createShader(const char* vertexStr, const char* fragmentStr)
 }
 
 inline SDL_Window* initWindow(int& windowWidth, int& windowHeight) {
-	SDL_Init(SDL_INIT_VIDEO);
+	SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO);
 	SDL_GL_LoadLibrary(NULL);
 
 	//window
@@ -646,10 +647,11 @@ void getPoseViaStack(Animation& animation, Bone& root, float dt, std::vector<glm
 		Bone* bone = item.bone;
 		glm::mat4 parentMat = item.parentMatrix;
 		BoneTransformTrack& btt = animation.boneTransforms[bone->name];
+		std::pair<int, float> fp;
 
 		glm::vec3 position;
 		if (btt.positions.size() > 0) {
-			auto fp = getTimeFraction(btt.positionTimestamps, dt);
+			fp = getTimeFraction(btt.positionTimestamps, dt);
 
 			if (fp.first - 1 >= 0) {
 				glm::vec3 p1 = btt.positions[fp.first - 1];
@@ -663,7 +665,7 @@ void getPoseViaStack(Animation& animation, Bone& root, float dt, std::vector<glm
 
 		glm::quat rotation = glm::quat(1,0,0,0);
 		if (btt.rotations.size() > 0) {
-			auto fp = getTimeFraction(btt.rotationTimestamps, dt);
+			fp = getTimeFraction(btt.rotationTimestamps, dt);
 
 			if (fp.first - 1 >= 0) {
 				glm::quat r1 = btt.rotations[fp.first - 1];
@@ -677,7 +679,7 @@ void getPoseViaStack(Animation& animation, Bone& root, float dt, std::vector<glm
 
 		glm::vec3 scale(1,1,1);
 		if (btt.scales.size() > 0) {
-			auto fp = getTimeFraction(btt.scaleTimestamps, dt);
+			fp = getTimeFraction(btt.scaleTimestamps, dt);
 
 			if (fp.first - 1 >= 0) {
 				glm::vec3 s1 = btt.scales[fp.first - 1];
@@ -722,6 +724,9 @@ int main(int argc, char *argv[]) {
 	//Creating imgui
 	GUI::Init(window, SDL_GL_GetCurrentContext());
 
+	//Initalizing the sound
+	Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 2048);
+
 	//Loading the file
 	//Note: the flags are a bit much I know but these are the ones that work for me
 	Assimp::Importer importer;
@@ -754,6 +759,11 @@ int main(int argc, char *argv[]) {
 	TIMER::StartTiming("Loading Animation: ");
 	loadAnimation(scene, dancingRobot.animations);
 	TIMER::StopTiming();
+
+	//Creating the audio
+	Mix_Music* music;
+	music = Mix_LoadMUS("./assets/lowqualitygangnamstyle.wav");
+	Mix_PlayMusic(music, -1);
 
 	//We inverse the root node transformation for the outputPose calculation
 	//I don't recommend you change this unless you know what you are doing
@@ -868,6 +878,10 @@ int main(int argc, char *argv[]) {
 	
 	///Cleanup
 	GUI::Shutdown();
+
+	Mix_FreeMusic(music);
+	music = nullptr;
+	Mix_Quit();
 
 	SDL_GLContext context =  SDL_GL_GetCurrentContext();
 	SDL_GL_DeleteContext(context);
