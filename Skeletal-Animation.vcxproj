@@ -146,6 +146,7 @@
     <ClInclude Include="dependancies\imgui\imstb_textedit.h" />
     <ClInclude Include="dependancies\imgui\imstb_truetype.h" />
     <ClInclude Include="gui.h" />
+    <ClInclude Include="MemoryMap.h" />
     <ClInclude Include="stb_image.h" />
     <ClInclude Include="utils.h" />
   </ItemGroup>

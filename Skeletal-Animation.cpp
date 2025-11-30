@@ -18,6 +18,8 @@
 #include <imgui_impl_sdl2.h>
 #include <SDL_events.h>
 
+//#include "MemoryMap.h"
+
 /// This is all in 1 file so you don't have to hunt through different files
 /// It is tempting to do that, but by leaving it out in the open you can get the big picture 
 /// If you want to abstract it or add more features later be my guest.
@@ -32,7 +34,7 @@
 #pragma region HELPER_FUNCTIONS
 typedef unsigned int uint;
 typedef unsigned char byte;
-
+ 
 ///Note:
 /// If you want to convert the matrices to your own math class
 /// Know that glm matrices are column major
@@ -635,19 +637,7 @@ int main(int argc, char *argv[]) {
 
 
 	//Creating imgui
-	// Setup Dear ImGui context
-	IMGUI_CHECKVERSION();
-	ImGui::CreateContext();
-	ImGuiIO& io = ImGui::GetIO();
-	io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
-	io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
-	//io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;         // IF using Docking Branch
-
-
-	// Setup Platform/Renderer backends
-	ImGui_ImplSDL2_InitForOpenGL(window, SDL_GL_GetCurrentContext());
-	ImGui_ImplOpenGL3_Init();
-
+	GUI::Init(window, SDL_GL_GetCurrentContext());
 
 	//Loading the file
 	//Note: the flags are a bit much I know but these are the ones that work for me
@@ -719,7 +709,7 @@ int main(int argc, char *argv[]) {
 			if (ev.type == SDL_QUIT)
 				isRunning = false;
 			// (Where your code calls SDL_PollEvent())
-			ImGui_ImplSDL2_ProcessEvent(&ev); // Forward your event to backend
+			GUI::ProcessEvent(&ev); // Forward your event to backend
 			// (You should discard mouse/keyboard messages in your game/engine when io.WantCaptureMouse/io.WantCaptureKeyboard are set.)
 		}
 
@@ -742,12 +732,7 @@ int main(int argc, char *argv[]) {
 			}
 		}
 
-		// (After event loop)
-		// Start the Dear ImGui frame
-		ImGui_ImplOpenGL3_NewFrame();
-		ImGui_ImplSDL2_NewFrame();
-		ImGui::NewFrame();
-		ImGui::ShowDemoWindow(); // Show demo window! :)
+		GUI::StartRendering();
 
 		/// Rendering
 		//Clearing the screen
@@ -786,19 +771,14 @@ int main(int argc, char *argv[]) {
 		}
 
 
-		// (Your code clears your framebuffer, renders your other stuff etc.)
-		ImGui::Render();
-		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
-		// (Your code calls SDL_GL_SwapWindow() etc.)
+		GUI::Render();
 
 
 		SDL_GL_SwapWindow(window);
 	}
 
 	//cleanup
-	ImGui_ImplOpenGL3_Shutdown();
-	ImGui_ImplSDL2_Shutdown();
-	ImGui::DestroyContext();
+	GUI::Shutdown();
 
 	SDL_GLContext context =  SDL_GL_GetCurrentContext();
 	SDL_GL_DeleteContext(context);
