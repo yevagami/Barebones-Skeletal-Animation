@@ -140,7 +140,7 @@ private:
 class MEMORY_CHUNKS{
 
 public:
-    static const unsigned int BYTES_PER_CHUNK = 100000000; //100 mil bytes 100 megabyte
+    static const unsigned int BYTES_PER_CHUNK = 20000000; //100 mil bytes 100 megabyte
     static const unsigned int CHUNKS = 4;
     static unsigned int USED[CHUNKS];
 
@@ -151,12 +151,29 @@ public:
 
         //If the amount of bytes you want to add doesn't fit, then it doesn't give you an address
         if (BYTES_PER_CHUNK - USED[chunk] < numBytes) {
-             return nullptr;
+            return nullptr;
         }
+        
+
         void* ptr = std::malloc(numBytes);
         USED[chunk] += numBytes;
         MAPS[chunk].AddEntry(ptr, numBytes);
         return ptr;
+    }
+
+    //Automatically finds a chunk to store the entry
+    static void* AutoAddEntry(std::size_t numBytes) {
+        for (int i = 0; i < CHUNKS; i++) {
+            if (BYTES_PER_CHUNK - USED[i] >= numBytes) {
+                void* ptr = std::malloc(numBytes);
+                USED[i] += numBytes;
+                MAPS[i].AddEntry(ptr, numBytes);
+                return ptr; 
+            }
+        }
+
+        //If none of them are available return a nullptr
+        return nullptr;
     }
 
     //Remove an entry from the memory chunk
@@ -190,7 +207,7 @@ private:
 };
 
 void* operator new(std::size_t numBytes) {
-    void* ptr = MEMORY_CHUNKS::AddEntry(numBytes, 0);
+    void* ptr = MEMORY_CHUNKS::AutoAddEntry(numBytes);
     return ptr;
 }
 
